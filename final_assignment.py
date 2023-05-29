@@ -50,12 +50,31 @@ day7 = data.iloc[50765:59893]
 day8 = data.iloc[59894:64570]
 day9 = data.iloc[64571:72511]
 day10 = data.iloc[72511:]
-print(day1)
+day1 = day1.to_csv()
+#print(day1)
 
 # making graphs from the separate days
-#G1 = nx.read_edgelist(day1)
+G1 = nx.read_edgelist("day1", data = ['1','2'])
 
 # basic model (Louvain for all days, unweighted, no historical continutity)
+
+# -----basic model (Louvain for all days, unweighted, no historical continutity)------
+# Execute Louvain algorithm 100 times
+num_runs = 100
+best_partition = None
+best_modularity = float('-inf')
+
+for _ in range(num_runs):
+    partition = community.best_partition(G1) #replace G1 with day subgraph of your day here to compute modularity for other days.
+    modularity = community.modularity(partition, G1)
+
+    if modularity > best_modularity:
+        best_partition = partition
+        best_modularity = modularity
+
+# Print the best partition and modularity
+print("Best Modularity:", best_modularity)
+#print("Best Partition:", best_partition) # best partition optimal
 
 # weighted edges model (Louvain with weighted edges for all days, no historical continutity)
 
