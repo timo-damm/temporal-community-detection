@@ -79,3 +79,152 @@ print("Best Modularity:", best_modularity)
 # weighted edges model (Louvain with weighted edges for all days, no historical continutity)
 
 # Best Combination of Local Communities (BCLC) (has historical continutity)
+# ---- modified Best Combination of Local Communities (BCLC) (has historical continutity)-----
+# Day 1 and 2
+# Initialize variables
+n = 100
+results_1 = []
+results_2 = []
+modularity_1 = []
+modularity_2 = []
+
+# Run Louvain algorithm on G1
+for i in range(n):
+    partition_1 = community.best_partition(G1)
+    modularity_1.append(community.modularity(partition_1, G1))
+    results_1.append(partition_1)
+
+# Run Louvain algorithm on G2
+for i in range(n):
+    partition_2 = community.best_partition(G2)
+    modularity_2.append(community.modularity(partition_2, G2))
+    results_2.append(partition_2)
+
+# Compute cumulative modularity
+cumulative_modularity = np.sum(modularity_1) + np.sum(modularity_2)
+
+# Compute unstandardised Jaccard index
+max_jaccard_index = 0
+max_jaccard_partition_1 = None
+max_jaccard_partition_2 = None
+
+for partition_1 in results_1:
+    for partition_2 in results_2:
+        intersection = sum(1 for i, j in zip(partition_1.values(), partition_2.values()) if i == j)
+        jaccard_index = intersection / len(partition_1)
+        
+        if jaccard_index > max_jaccard_index:
+            max_jaccard_index = jaccard_index
+            max_jaccard_partition_1 = partition_1
+            max_jaccard_partition_2 = partition_2
+
+# Print the results
+print("Cumulative Modularity:", cumulative_modularity)
+print("Modularity of Partition 1:", max(modularity_1))
+print("Modularity of Partition 2:", max(modularity_2))
+print("Max Jaccard Index:", max_jaccard_index)
+print("Partition 1:", max_jaccard_partition_1) 
+print("Partition 2:", max_jaccard_partition_2) #these two partitions maximise both Jaccard and modularity, therefore also historical continuity
+
+#Day 3-10
+# Create a list of graphs
+graphs = [G3, G4, G5, G6, G7, G8, G9, G10]
+
+# Initialize variables
+n = 100
+results = []
+modularity = []
+partition = []
+
+# Run Louvain algorithm on G3
+for i, G in enumerate(graphs):
+    for j in range(n):
+        part = community.best_partition(G)
+        modularity.append(community.modularity(part, G))
+        results.append(part)
+        partition.append((i + 3, j))
+
+# Compute cumulative modularity
+cumulative_modularity = np.sum(modularity)
+
+# Compute unstandardised Jaccard index
+max_jaccard_index = 0
+max_jaccard_partition = None
+
+for part_1 in results:
+    for part_2 in results:
+        intersection = sum(1 for i, j in zip(part_1.values(), part_2.values()) if i == j)
+        jaccard_index = intersection / len(part_1)
+        
+        if jaccard_index > max_jaccard_index:
+            max_jaccard_index = jaccard_index
+            max_jaccard_partition = part_1
+
+# Find the partition that maximizes both modularity and Jaccard index for each graph
+for i in range(3, 10):
+    G = graphs[i - 3]
+    max_modularity = -1
+    max_jaccard_index = 0
+    max_partition = None
+    
+    for j in range(n):
+        part = community.best_partition(G)
+        mod = community.modularity(part, G)
+        intersection = sum(1 for a, b in zip(part.values(), max_jaccard_partition.values()) if a == b)
+        jaccard_index = intersection / len(part)
+        
+        if mod > max_modularity and jaccard_index > max_jaccard_index:
+            max_modularity = mod
+            max_jaccard_index = jaccard_index
+            max_partition = part
+    
+    max_jaccard_partition = max_partition
+
+    print(f"Graph G{i}")
+    print("Max Modularity:", max_modularity)
+    print("Max Jaccard Index:", max_jaccard_index)
+    print("Partition:", max_partition)
+    print()
+    
+    # Set up figure and axes
+    fig, ax = plt.subplots(figsize=(6, 6))
+
+    # Draw the graph
+    pos = nx.fruchterman_reingold_layout(G)
+    nx.draw_networkx(G, pos, ax=ax, with_labels=False, node_color='darkblue', edge_color='gray', node_size=15)
+
+    # Create the custom legend
+    legend_text = "Modularity: {:.4f}\nJaccard Index: {:.4f}".format(max(modularity), max_jaccard_index)
+    plt.text(0.05, 0.95, legend_text, transform=ax.transAxes, fontsize=12, verticalalignment='top')
+
+    # Add a title indicating the day
+    plt.title("Day {} Contact Network".format(i))
+
+    # Adjust spacing and remove axis ticks
+    plt.tight_layout()
+    ax.tick_params(left=False, bottom=False)
+
+    # Save the graph as a PNG file
+    #plt.savefig("day{}_network.png".format(i), dpi=300)
+    
+# Visualisations (modify if needed for other days than 1)
+#Set up figure and axes
+fig, ax = plt.subplots(figsize=(6, 6))
+
+# Draw the graph
+pos = nx.fruchterman_reingold_layout(G1)
+nx.draw_networkx(G1, pos, ax=ax, with_labels=False, node_color='darkblue', edge_color='gray', node_size = 15)
+
+# Set figure title and axis labels
+plt.title("Day 1 Contact Network")
+
+# Create the legend
+legend_text = "Modularity: {:.4f}\nJaccard Index: {:.4f}".format(max(modularity), max_jaccard_index)
+plt.text(0.05, 0.95, legend_text, transform=ax.transAxes, fontsize=12, verticalalignment='top')
+
+# Adjust spacing and remove axis ticks
+plt.tight_layout()
+ax.tick_params(left=False, bottom=False)
+
+#plt.savefig("day1_network.png", dpi=300)
+plt.show()
