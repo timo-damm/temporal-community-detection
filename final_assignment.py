@@ -56,6 +56,79 @@ day1 = day1.to_csv()
 # making graphs from the separate days
 G1 = nx.read_edgelist("day1", data = ['1','2'])
 
+# ----- basic descriptives-----
+# Define a function to calculate the required information for a given day
+def analyze_day(G, day_df):
+    # Calculate the number of individuals in the graph
+    num_individuals = G.number_of_nodes()
+
+    # Calculate the length of the data frame (delta t in seconds)
+    delta_t = day_df['t'].max() - day_df['t'].min()
+
+    # Calculate the number of interactions
+    num_interactions = G.number_of_edges()
+
+    # Calculate the average degree centrality
+    degree_centrality = nx.degree_centrality(G)
+    avg_degree_centrality = sum(degree_centrality.values()) / num_individuals
+
+    # Calculate the maximum degree centrality
+    max_degree_centrality = max(degree_centrality.values())
+
+    # Calculate the global clustering coefficient
+    clustering_coefficient = nx.average_clustering(G)
+
+    # Calculate the average geodesic distance
+    avg_geodesic_distance = nx.average_shortest_path_length(G)
+
+    # Create a dictionary with the calculated information
+    result = {
+        'num_individuals': num_individuals,
+        'delta_t': delta_t,
+        'num_interactions': num_interactions,
+        'avg_degree_centrality': avg_degree_centrality,
+        'max_degree_centrality': max_degree_centrality,
+        'clustering_coefficient': clustering_coefficient,
+        'avg_geodesic_distance': avg_geodesic_distance
+    }
+
+    return result
+
+# Create a list to store the results for each day
+results = []
+
+# Iterate over the data frames and graphs for each day and analyze the data
+for day_num in range(1, 11):
+    day_df = globals()[f'day{day_num}']
+    graph = globals()[f'G{day_num}']
+    result = analyze_day(graph, day_df)
+    results.append(result)
+
+# Print the results
+for day_num, result in enumerate(results):
+    print(f"Results for Day {day_num+1}:")
+    for key, value in result.items():
+        print(f"{key}: {value}")
+    print()
+
+# -----basic model (Louvain for all days, unweighted, no historical continutity)------
+# Execute Louvain algorithm 100 times
+num_runs = 100
+best_partition = None
+best_modularity = float('-inf')
+
+for _ in range(num_runs):
+    partition = community.best_partition(G1) #replace G1 with day subgraph of your day here to compute modularity for other days.
+    modularity = community.modularity(partition, G1)
+
+    if modularity > best_modularity:
+        best_partition = partition
+        best_modularity = modularity
+
+# Print the best partition and modularity
+print("Best Modularity:", best_modularity)
+#print("Best Partition:", best_partition) # best partition optimal
+
 # basic model (Louvain for all days, unweighted, no historical continutity)
 
 # -----basic model (Louvain for all days, unweighted, no historical continutity)------
@@ -161,24 +234,26 @@ for part_1 in results:
             max_jaccard_partition = part_1
 
 # Find the partition that maximizes both modularity and Jaccard index for each graph
-for i in range(3, 10):
+for i in range(3, 11):  # Update the range to include G10
     G = graphs[i - 3]
     max_modularity = -1
     max_jaccard_index = 0
     max_partition = None
-    
+
     for j in range(n):
         part = community.best_partition(G)
         mod = community.modularity(part, G)
-        intersection = sum(1 for a, b in zip(part.values(), max_jaccard_partition.values()) if a == b)
-        jaccard_index = intersection / len(part)
-        
-        if mod > max_modularity and jaccard_index > max_jaccard_index:
+
+        if mod > max_modularity:
             max_modularity = mod
-            max_jaccard_index = jaccard_index
             max_partition = part
-    
-    max_jaccard_partition = max_partition
+
+    for part_2 in results:
+        intersection = sum(1 for a, b in zip(max_partition.values(), part_2.values()) if a == b)
+        jaccard_index = intersection / len(max_partition)
+
+        if jaccard_index > max_jaccard_index:
+            max_jaccard_index = jaccard_index
 
     print(f"Graph G{i}")
     print("Max Modularity:", max_modularity)
