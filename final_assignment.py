@@ -53,20 +53,59 @@ day7 = data.iloc[50765:59893]
 day8 = data.iloc[59894:64570]
 day9 = data.iloc[64571:72511]
 day10 = data.iloc[72511:]
-print(day1)
+day1weight = day1.groupby(['source', 'target']).size().reset_index(name='weight')
 
 # making graphs from the separate days
 
 G1 = nx.from_pandas_edgelist(day1,'source','target')
-G2 = nx.from_pandas_edgelist(day2,'source','target')
-G3 = nx.from_pandas_edgelist(day3,'source','target')
-G4 = nx.from_pandas_edgelist(day4,'source','target')
-G5 = nx.from_pandas_edgelist(day5,'source','target')
-G6 = nx.from_pandas_edgelist(day6,'source','target')
-G7 = nx.from_pandas_edgelist(day7,'source','target')
-G8 = nx.from_pandas_edgelist(day8,'source','target')
-G9 = nx.from_pandas_edgelist(day9,'source','target')
-G10 = nx.from_pandas_edgelist(day10,'source','target')
+G1weight = nx.from_pandas_edgelist(day1weight,'source','target',edge_attr='weight')
+
+import networkx as nx
+
+# Day 2
+day2weight = day2.groupby(['source', 'target']).size().reset_index(name='weight')
+G2 = nx.from_pandas_edgelist(day2, 'source', 'target')
+G2weight = nx.from_pandas_edgelist(day2weight, 'source', 'target', edge_attr='weight')
+
+# Day 3
+day3weight = day3.groupby(['source', 'target']).size().reset_index(name='weight')
+G3 = nx.from_pandas_edgelist(day3, 'source', 'target')
+G3weight = nx.from_pandas_edgelist(day3weight, 'source', 'target', edge_attr='weight')
+
+# Day 4
+day4weight = day4.groupby(['source', 'target']).size().reset_index(name='weight')
+G4 = nx.from_pandas_edgelist(day4, 'source', 'target')
+G4weight = nx.from_pandas_edgelist(day4weight, 'source', 'target', edge_attr='weight')
+
+# Day 5
+day5weight = day5.groupby(['source', 'target']).size().reset_index(name='weight')
+G5 = nx.from_pandas_edgelist(day5, 'source', 'target')
+G5weight = nx.from_pandas_edgelist(day5weight, 'source', 'target', edge_attr='weight')
+
+# Day 6
+day6weight = day6.groupby(['source', 'target']).size().reset_index(name='weight')
+G6 = nx.from_pandas_edgelist(day6, 'source', 'target')
+G6weight = nx.from_pandas_edgelist(day6weight, 'source', 'target', edge_attr='weight')
+
+# Day 7
+day7weight = day7.groupby(['source', 'target']).size().reset_index(name='weight')
+G7 = nx.from_pandas_edgelist(day7, 'source', 'target')
+G7weight = nx.from_pandas_edgelist(day7weight, 'source', 'target', edge_attr='weight')
+
+# Day 8
+day8weight = day8.groupby(['source', 'target']).size().reset_index(name='weight')
+G8 = nx.from_pandas_edgelist(day8, 'source', 'target')
+G8weight = nx.from_pandas_edgelist(day8weight, 'source', 'target', edge_attr='weight')
+
+# Day 9
+day9weight = day9.groupby(['source', 'target']).size().reset_index(name='weight')
+G9 = nx.from_pandas_edgelist(day9, 'source', 'target')
+G9weight = nx.from_pandas_edgelist(day9weight, 'source', 'target', edge_attr='weight')
+
+# Day 10
+day10weight = day10.groupby(['source', 'target']).size().reset_index(name='weight')
+G10 = nx.from_pandas_edgelist(day10, 'source', 'target')
+G10weight = nx.from_pandas_edgelist(day10weight, 'source', 'target', edge_attr='weight')
 
 # ----- basic descriptives-----
 # Define a function to calculate the required information for a given day
@@ -124,44 +163,83 @@ for day_num, result in enumerate(results):
     print()
 
 # -----basic model (Louvain for all days, unweighted, no historical continutity)------
-# Execute Louvain algorithm 100 times
+# Function to execute Louvain algorithm and return best partition and modularity
+def execute_louvain(graph):
+    best_partition = None
+    best_modularity = float('-inf')
+
+    for _ in range(num_runs):
+        partition = community.best_partition(graph)
+        modularity = community.modularity(partition, graph)
+
+        if modularity > best_modularity:
+            best_partition = partition
+            best_modularity = modularity
+
+    return best_partition, best_modularity
+
+# Execute Louvain algorithm for each graph
 num_runs = 100
+best_partitions = []
+best_modularities = []
+
+# For Day 1
+best_partition, best_modularity = execute_louvain(G1)
+best_partitions.append(best_partition)
+best_modularities.append(best_modularity)
+print("Best Modularity for Day 1:", best_modularity)
+
+# For Day 2 to Day 10
+graphs = [G2, G3, G4, G5, G6, G7, G8, G9, G10]
+for i, graph in enumerate(graphs, start=2):
+    best_partition, best_modularity = execute_louvain(graph)
+    best_partitions.append(best_partition)
+    best_modularities.append(best_modularity)
+    print("Best Modularity for Day", i, ":", best_modularity)
+
+
+# -----weighted edges model (Louvain with weighted edges for all days, no historical continutity)----
+
+# Execute Louvain algorithm for each graph
+num_runs = 100
+best_partitions = []
+best_modularities = []
+
+# For Day 1
 best_partition = None
 best_modularity = float('-inf')
 
 for _ in range(num_runs):
-    partition = community.best_partition(G1) #replace G1 with day subgraph of your day here to compute modularity for other days.
-    modularity = community.modularity(partition, G1)
+    partition = community.best_partition(G1weight, weight='weight')
+    modularity = community.modularity(partition, G1weight)
 
     if modularity > best_modularity:
         best_partition = partition
         best_modularity = modularity
 
-# Print the best partition and modularity
-print("Best Modularity:", best_modularity)
-#print("Best Partition:", best_partition) # best partition optimal
+best_partitions.append(best_partition)
+best_modularities.append(best_modularity)
 
-# basic model (Louvain for all days, unweighted, no historical continutity)
+print("Best Modularity for Day 1:", best_modularity)
 
-# -----basic model (Louvain for all days, unweighted, no historical continutity)------
-# Execute Louvain algorithm 100 times
-num_runs = 100
-best_partition = None
-best_modularity = float('-inf')
+# Repeat the same process for the remaining days
+graphs = [G2weight, G3weight, G4weight, G5weight, G6weight, G7weight, G8weight, G9weight, G10weight]
+for i, graph in enumerate(graphs, start=2):
+    best_partition = None
+    best_modularity = float('-inf')
 
-for _ in range(num_runs):
-    partition = community.best_partition(G1) #replace G1 with day subgraph of your day here to compute modularity for other days.
-    modularity = community.modularity(partition, G1)
+    for _ in range(num_runs):
+        partition = community.best_partition(graph, weight='weight')
+        modularity = community.modularity(partition, graph)
 
-    if modularity > best_modularity:
-        best_partition = partition
-        best_modularity = modularity
+        if modularity > best_modularity:
+            best_partition = partition
+            best_modularity = modularity
 
-# Print the best partition and modularity
-print("Best Modularity:", best_modularity)
-#print("Best Partition:", best_partition) # best partition optimal
+    best_partitions.append(best_partition)
+    best_modularities.append(best_modularity)
 
-# weighted edges model (Louvain with weighted edges for all days, no historical continutity)
+    print("Best Modularity for Day", i, ":", best_modularity)
 
 # Best Combination of Local Communities (BCLC) (has historical continutity)
 # ---- modified Best Combination of Local Communities (BCLC) (has historical continutity)-----
