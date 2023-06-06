@@ -7,25 +7,28 @@ import numpy as np
 import networkx as nx
 import matplotlib.pyplot as plt
 import ruptures as rpt
+import community
 
-# Data import and preparations
+# -----Data import and preparations-----
 # import
 header=np.array(["t","i","j"])
 data=pd.read_csv("/home/dot/PAOS_ResMa/complex_systems_track/CSRP/data/tij_InVS15.dat", sep = ' ', header = None) #main data with interactions
 metadata=pd.read_csv("/home/dot/PAOS_ResMa/complex_systems_track/CSRP/data/metadata_InVS15.txt")
 #data #optional, for inspection. 
+data = data.rename(columns={0: 't',1: 'source', 2: 'target'})
 
 def count_distinct(arr):
     distinct = set(arr)
     return len(distinct)
-hist=data[0]
+hist=data['t']
 #print(count_distinct(hist))
-#interactions = plt.hist(x=hist, bins= 18488, color='#0504aa',
-                            #alpha=0.7, rwidth=0.85)
-#plt.xlabel('Day')
-#plt.ylabel('Number of Interactions')
-#plt.title('Interaction Frequencies')
-
+interactions = plt.hist(x=hist, bins= 18488, color='#0504aa',
+                            alpha=0.7, rwidth=0.85)
+plt.xlabel('Time')
+plt.ylabel('Number of Interactions')
+plt.title('Interaction Frequencies')
+plt.show(interactions)
+                        
 #splitting into days
 #print(len(hist))
 n=np.linspace(1,78249,num=78249)
@@ -50,11 +53,20 @@ day7 = data.iloc[50765:59893]
 day8 = data.iloc[59894:64570]
 day9 = data.iloc[64571:72511]
 day10 = data.iloc[72511:]
-day1 = day1.to_csv()
-#print(day1)
+print(day1)
 
 # making graphs from the separate days
-G1 = nx.read_edgelist("day1", data = ['1','2'])
+
+G1 = nx.from_pandas_edgelist(day1,'source','target')
+G2 = nx.from_pandas_edgelist(day2,'source','target')
+G3 = nx.from_pandas_edgelist(day3,'source','target')
+G4 = nx.from_pandas_edgelist(day4,'source','target')
+G5 = nx.from_pandas_edgelist(day5,'source','target')
+G6 = nx.from_pandas_edgelist(day6,'source','target')
+G7 = nx.from_pandas_edgelist(day7,'source','target')
+G8 = nx.from_pandas_edgelist(day8,'source','target')
+G9 = nx.from_pandas_edgelist(day9,'source','target')
+G10 = nx.from_pandas_edgelist(day10,'source','target')
 
 # ----- basic descriptives-----
 # Define a function to calculate the required information for a given day
