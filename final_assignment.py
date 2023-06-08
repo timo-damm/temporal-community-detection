@@ -1,6 +1,4 @@
 # Network Science (INFONPM) Final Assignment
-# Timo Damm & Pascalle Doorn
-
 # general preparations
 import pandas as pd
 import numpy as np
@@ -12,8 +10,8 @@ import community
 # -----Data import and preparations-----
 # import
 header=np.array(["t","i","j"])
-data=pd.read_csv("/home/dot/PAOS_ResMa/complex_systems_track/CSRP/data/tij_InVS15.dat", sep = ' ', header = None) #main data with interactions
-metadata=pd.read_csv("/home/dot/PAOS_ResMa/complex_systems_track/CSRP/data/metadata_InVS15.txt")
+data=pd.read_csv("tij_InVS15.dat", sep = ' ', header = None) #main data with interactions
+metadata=pd.read_csv("metadata_InVS15.txt")
 #data #optional, for inspection. 
 data = data.rename(columns={0: 't',1: 'source', 2: 'target'})
 
